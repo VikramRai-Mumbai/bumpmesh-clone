@@ -1,0 +1,10 @@
+# Always check out text files with LF line endings (Biome expects LF), on every OS.
+* text=auto eol=lf
+
+# Binary files: never convert.
+*.ico binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.stl binary
+*.3mf binary

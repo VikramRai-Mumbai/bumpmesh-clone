@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Dark mode follows the `dark` class on <html>, set by the theme toggle. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --app-bg: #ffffff;
+  --app-panel: #ffffff;
+  --app-subtle: #f6f6f9;
+  --app-line: #e3e3ea;
+  --app-fg: #1f2330;
+  --app-muted: #6b7080;
+  --app-accent: #5b50e6;
+  --app-accent-soft: #ecebfd;
+}
+
+.dark {
+  --app-bg: #16171c;
+  --app-panel: #1d1e24;
+  --app-subtle: #26272f;
+  --app-line: #33343d;
+  --app-fg: #e6e7ec;
+  --app-muted: #9a9dab;
+  --app-accent: #7c73ff;
+  --app-accent-soft: #2c2a4a;
+}
+
+@theme inline {
+  --color-app: var(--app-bg);
+  --color-panel: var(--app-panel);
+  --color-subtle: var(--app-subtle);
+  --color-line: var(--app-line);
+  --color-fg: var(--app-fg);
+  --color-muted: var(--app-muted);
+  --color-accent: var(--app-accent);
+  --color-accent-soft: var(--app-accent-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--app-fg);
+}
+
+input[type="range"] {
+  accent-color: var(--app-accent);
+}
