@@ -51,6 +51,7 @@ Done (Milestone 5):
 - Favorites in the Texture Gallery (★, remembered in this browser)
 - Save Project / Load Project (`.texproj`): model, settings, painted mask and custom map; load as Model + settings or Settings only
 - Export STL or 3MF in a Web Worker with progress and Cancel; 3D Preview is prepared in the worker too
+- Model units: files saved in metres are detected and scaled to millimetres automatically; a Model units switch (mm / cm / m / in) rescales any file
 - Input checks (size limits, empty or broken files, invalid coordinates, zero-area triangles removed), WebGL and lost-context messages, and an error screen instead of a blank page
 
 Keyboard shortcuts: `Ctrl+Z` undo, `Ctrl+Shift+Z` / `Ctrl+Y` redo, `Ctrl+O` load model, `F` fit view, `W` wireframe, `Esc` cancel Place on Face or leave a mask tool. While a mask tool is active: left-drag paints, `Shift` erases, `Alt` + drag orbits.
@@ -121,7 +122,7 @@ bun run format       # apply Biome formatting
 
 ### Quick tour
 
-1. Load an STL, or keep the sample cube.
+1. Load an STL, or keep the sample cube. Check the size in the status bar; if it looks wrong, pick the right **Model units** (mm, cm, m or in).
 2. Pick a texture in **Displacement Map** (or open **Texture Gallery**).
 3. Adjust **Texture height**, **Size U/V** and **Projection**; turn on **3D Preview** to see real depth.
 4. Optionally mask areas in **Masking** (angle sliders, brush or bucket fill).

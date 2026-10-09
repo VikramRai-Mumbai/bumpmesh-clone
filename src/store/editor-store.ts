@@ -13,7 +13,12 @@ import {
   type Rotation,
   rotateAboutAxis,
 } from "@/lib/geometry/orientation";
-import { getModelInfo, type ModelInfo } from "@/lib/geometry/stl-loader";
+import {
+  getModelInfo,
+  type ModelInfo,
+  type ModelUnits,
+  UNIT_TO_MM,
+} from "@/lib/geometry/stl-loader";
 import { commit, createHistory, type History, redo, undo } from "@/lib/history";
 import {
   clonePaint,
@@ -142,11 +147,20 @@ type EditorStore = {
   /** Short message shown after project load/save (cleared on next action). */
   notice: string | null;
 
+  /** Current model units; the geometry is always stored in millimetres. */
+  modelUnits: ModelUnits;
+  /**
+   * Makes a geometry the active model.
+   * @param units - Units of the incoming coordinates; they are scaled to millimetres.
+   */
   setModel: (
     geometry: THREE.BufferGeometry,
     name: string,
     sizeBytes?: number,
+    units?: ModelUnits,
   ) => void;
+  /** Re-interprets the model in other units (rescales it), keeping all settings. */
+  setModelUnits: (units: ModelUnits) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 
@@ -298,13 +312,16 @@ export const useEditorStore = create<EditorStore>((set, get) => {
     exportState: { status: "idle" },
     customMapName: null,
     notice: null,
+    modelUnits: "mm",
 
     // New model: free the old GPU buffers and start a fresh history, keeping texture and
     // mask options but clearing the painted selection. Geometry is stored non-indexed so
     // triangle i is always vertices 3i..3i+2 (the mask relies on that numbering).
-    setModel: (input, name, sizeBytes = 0) => {
+    setModel: (input, name, sizeBytes = 0, units = "mm") => {
       const geometry = input.index ? input.toNonIndexed() : input;
       if (geometry !== input) input.dispose();
+      const factor = UNIT_TO_MM[units];
+      if (factor !== 1) geometry.scale(factor, factor, factor);
       const previous = get().geometry;
       if (previous && previous !== geometry) previous.dispose();
       const { texture, mask } = get().history.present;
@@ -315,6 +332,7 @@ export const useEditorStore = create<EditorStore>((set, get) => {
       };
       set({
         geometry,
+        modelUnits: units,
         modelInfo: getModelInfo(geometry, name, sizeBytes),
         history: createHistory(doc),
         placement: computePlacement(geometry, IDENTITY),
@@ -329,6 +347,24 @@ export const useEditorStore = create<EditorStore>((set, get) => {
     },
     setLoading: (loading) => set({ loading }),
     setError: (error) => set({ error }),
+
+    // Rescales a copy of the model (triangle order is unchanged, so the painted mask
+    // still lines up) and keeps the undo history and settings.
+    setModelUnits: (units) => {
+      const { geometry, modelUnits, history, fitRequest } = get();
+      if (!geometry || units === modelUnits) return;
+      const ratio = UNIT_TO_MM[units] / UNIT_TO_MM[modelUnits];
+      const scaled = geometry.clone().scale(ratio, ratio, ratio);
+      geometry.dispose();
+      set({
+        geometry: scaled,
+        modelUnits: units,
+        placement: computePlacement(scaled, history.present.rotation),
+        exportState: { status: "idle" },
+        fitRequest: fitRequest + 1,
+        notice: null,
+      });
+    },
 
     // Applies X, then Y, then Z (world axes) as a single undo step; zero angles are skipped.
     rotateBy: (degrees, from) => {

@@ -12,6 +12,7 @@ import {
   RotateIcon,
 } from "@/components/ui/icons";
 import type { Rotation } from "@/lib/geometry/orientation";
+import type { ModelUnits } from "@/lib/geometry/stl-loader";
 import { useEditorStore } from "@/store/editor-store";
 import ExportSection from "./ExportSection";
 import TextureGallery from "./TextureGallery";
@@ -124,9 +125,54 @@ function ModelActions({ onOpenFile }: Props) {
         </p>
       )}
 
+      <UnitsRow />
+
       <p className="mt-2 text-center text-[11px] text-muted">
         All processing runs locally in your browser. No data is uploaded.
       </p>
+    </div>
+  );
+}
+
+const UNITS: { value: ModelUnits; label: string; title: string }[] = [
+  { value: "mm", label: "mm", title: "File coordinates are millimetres" },
+  { value: "cm", label: "cm", title: "File coordinates are centimetres (×10)" },
+  { value: "m", label: "m", title: "File coordinates are metres (×1000)" },
+  { value: "in", label: "in", title: "File coordinates are inches (×25.4)" },
+];
+
+/**
+ * Model units: STL files carry no units, so this sets how file coordinates are read.
+ * Changing it rescales the model; settings and the painted mask are kept.
+ */
+function UnitsRow() {
+  const units = useEditorStore((s) => s.modelUnits);
+  const setUnits = useEditorStore((s) => s.setModelUnits);
+  const hasModel = useEditorStore((s) => s.geometry !== null);
+
+  return (
+    <div className="mt-2 flex items-center gap-2 text-xs">
+      <span
+        className="text-muted"
+        title="STL files have no units; choose how to read this file"
+      >
+        Model units
+      </span>
+      <div className="flex flex-1 rounded-md border border-line p-0.5">
+        {UNITS.map((u) => (
+          <button
+            key={u.value}
+            type="button"
+            title={u.title}
+            disabled={!hasModel}
+            aria-pressed={units === u.value}
+            onClick={() => setUnits(u.value)}
+            className={`flex-1 rounded px-2 py-0.5 ${units === u.value ? "bg-accent text-white" : "text-fg hover:bg-subtle"}`}
+          >
+            {u.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

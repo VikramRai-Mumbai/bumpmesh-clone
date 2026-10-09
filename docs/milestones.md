@@ -102,7 +102,8 @@ Checked: `tsc --noEmit` and `biome check` pass. In headless Chrome: on the sampl
 | Save / Load Project | `.texproj` zip: settings JSON plus raw binary model, painted mask and custom map. Load as Model + settings, or Settings only (painted mask kept only if the triangle count matches). Files are validated with clear errors |
 | Export | STL or 3MF, run in a Web Worker with step progress and Cancel; the written file is read back to verify |
 | 3D Preview | Mesh preparation runs in the worker |
-| Input checks | Over 200 MB warns, over 500 MB is refused; empty, unreadable and NaN files are rejected; zero-area triangles are removed and reported |
+| Input checks | Over 200 MB warns, over 500 MB is refused; empty, unreadable and NaN files are rejected; zero-area triangles (relative to model size) are removed and reported |
+| Model units | STL has no units: models under 1 mm are treated as metres and scaled ×1000 with a note; a Model units switch (mm / cm / m / in) rescales the model and keeps all settings |
 | Robustness | WebGL 2 missing → explanation; GPU context loss → "Restoring" overlay; render errors → recovery screen with Reload |
 
 Checked: `tsc --noEmit` and `biome check` pass; production build checked in a clean checkout. In headless Chrome against the dev server: broken STL rejected with a message; cylindrical, spherical and a custom PNG map render on a sphere; STL and 3MF exports verified (339,712 triangles, 50.84 × 50.88 × 50.91 mm); a 4M-triangle export was cancelled mid-subdivision while the page stayed responsive; Save Project, Load Project (both modes) and favorites work; no console errors.

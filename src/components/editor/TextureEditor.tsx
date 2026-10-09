@@ -44,8 +44,8 @@ export default function TextureEditor() {
     setError(null);
 
     try {
-      const { geometry, notes } = await loadSTL(file);
-      setModel(geometry, file.name, file.size);
+      const { geometry, notes, units } = await loadSTL(file);
+      setModel(geometry, file.name, file.size, units);
       setNotice(notes.length ? notes.join(" ") : null);
     } catch (error) {
       setError(error instanceof Error ? error.message : "Unable to load model");

@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
+  // Don't generate AGENTS.md in the project during `next dev`.
+  agentRules: false,
   turbopack: {
     rules: {
       "*.css": {

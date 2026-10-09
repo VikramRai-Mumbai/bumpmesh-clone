@@ -23,14 +23,14 @@ All editor state is in one Zustand store (`store/editor-store.ts`). Components s
 
 | Part | Contents | Undoable |
 |---|---|---|
-| Model | `geometry`, `modelInfo` | No (loading a model starts a new history) |
+| Model | `geometry` (always in millimetres), `modelInfo`, `modelUnits` | No (loading a model starts a new history) |
 | Document | `rotation` (quaternion), `texture` (all texture settings), `mask` (options + painted faces bitset) | Yes |
 | Live preview | `texturePreview`, `maskPreview`: slider values while dragging; `paintDraft`: selection during a stroke | No (committed on release) |
 | Derived | `placement`: offset to sit on the plate, rotated size | Recomputed |
 | View | wireframe, perspective, sidebar, gallery, 3D Preview, pick mode, mask tool and brush options, Section View, theme | No |
 | Export | resolution, max triangles, progress and result | No |
 
-The geometry moved into the store in Milestone 2 because the viewport, status bar and actions all need it. It is never modified: rotation is applied as a transform, so undo stays cheap and the original mesh stays intact.
+The geometry moved into the store in Milestone 2 because the viewport, status bar and actions all need it. It is never modified by editing: rotation is applied as a transform, so undo stays cheap and the original mesh stays intact. Changing Model units swaps in a rescaled copy; triangle order is unchanged, so the painted mask still lines up.
 
 ## Undo / redo
 
@@ -51,8 +51,9 @@ The viewport applies `rotation`, then `placement.offset`. The status bar shows t
 1. A file comes from the picker, `Ctrl+O` or drag-and-drop.
 2. `file.arrayBuffer()` reads it locally (nothing is uploaded).
 3. `STLLoader.parse()` returns a `BufferGeometry` (ASCII or binary).
-4. Normals are computed; `getModelInfo` gives triangle count and file size.
-5. `setModel` stores the geometry, disposes the previous one, resets history and asks the viewport to refit.
+4. Zero-area triangles are removed (the threshold is relative to the model's size), normals are computed, and `getModelInfo` gives triangle count and file size.
+5. Units are guessed: STL has no units, and a model under 1 mm in every direction is treated as metres (`guessUnits`), with a note shown in the sidebar.
+6. `setModel` scales the geometry to millimetres, stores it, disposes the previous one, resets history and asks the viewport to refit. The Model units switch (mm / cm / m / in) calls `setModelUnits` to rescale later while keeping all settings.
 
 Errors (wrong extension, empty geometry, parser exceptions) are caught in `handleFile` and shown in the sidebar.
 
@@ -110,7 +111,7 @@ Section View: a world-space clipping plane on the model material; pick results o
 
 ## Robustness
 
-- `loadSTL` enforces size limits, rejects empty, unreadable and NaN files, and removes zero-area triangles.
+- `loadSTL` enforces size limits, rejects empty, unreadable and NaN files, removes zero-area triangles relative to the model's size, and detects metre-scale files.
 - `EditorErrorBoundary` shows a recovery screen if rendering throws.
 - The viewport checks for WebGL 2 before creating the canvas and handles `webglcontextlost` / `webglcontextrestored`.
 
